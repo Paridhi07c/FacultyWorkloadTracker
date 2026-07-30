@@ -1,91 +1,121 @@
 package gui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
-public class LoginFrame extends JFrame implements ActionListener {
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
-    JLabel lblTitle, lblUser, lblPass;
-    JTextField txtUser;
-    JPasswordField txtPass;
-    JButton btnLogin, btnExit;
+import config.AppConfig;
+import config.DatabaseConfig;
+import util.UITheme;
+
+public class LoginFrame extends JFrame {
+
+    private JTextField txtUser;
+    private JPasswordField txtPass;
 
     public LoginFrame() {
-
-        setTitle("Faculty Workload Tracker");
-        setSize(420,320);
-        setLocationRelativeTo(null);
+        setTitle("Faculty Workload Tracker - Login");
+        setSize(480, 420);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
-        getContentPane().setBackground(new Color(240,248,255));
-
-        lblTitle = new JLabel("Faculty Workload Tracker");
-        lblTitle.setFont(new Font("Arial", Font.BOLD,22));
-        lblTitle.setBounds(60,20,320,30);
-
-        lblUser = new JLabel("Username");
-        lblUser.setBounds(50,80,100,25);
-
-        txtUser = new JTextField();
-        txtUser.setBounds(160,80,180,25);
-
-        lblPass = new JLabel("Password");
-        lblPass.setBounds(50,130,100,25);
-
-        txtPass = new JPasswordField();
-        txtPass.setBounds(160,130,180,25);
-
-        btnLogin = new JButton("Login");
-        btnLogin.setBounds(70,200,100,35);
-
-        btnExit = new JButton("Exit");
-        btnExit.setBounds(220,200,100,35);
-
-        btnLogin.addActionListener(this);
-        btnExit.addActionListener(this);
-
-        add(lblTitle);
-        add(lblUser);
-        add(txtUser);
-        add(lblPass);
-        add(txtPass);
-        add(btnLogin);
-        add(btnExit);
-
+        UITheme.applyFrameDefaults(this);
+        buildUI();
         setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
+    private void buildUI() {
+        setLayout(new BorderLayout());
 
-        if(e.getSource()==btnLogin){
+        add(UITheme.createHeaderPanel(
+                "Faculty Workload Tracker",
+                "Sign in to manage faculty workloads"), BorderLayout.NORTH);
 
-            String username = txtUser.getText();
-            String password = new String(txtPass.getPassword());
+        JPanel card = UITheme.createCardPanel();
+        card.setLayout(new GridBagLayout());
+        card.setBorder(new EmptyBorder(32, 40, 32, 40));
 
-            if(username.equals("admin") && password.equals("admin123")){
+        GridBagConstraints gbc = UITheme.formConstraints(0);
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-                JOptionPane.showMessageDialog(this,"Login Successful");
+        JLabel lblUser = UITheme.createFormLabel("Username");
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        card.add(lblUser, gbc);
 
-                dispose();
+        txtUser = UITheme.createTextField();
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        card.add(txtUser, gbc);
 
-                new Dashboard();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        JLabel lblPass = UITheme.createFormLabel("Password");
+        card.add(lblPass, gbc);
 
-            }else{
+        txtPass = new JPasswordField();
+        txtPass.setFont(UITheme.FONT_BODY);
+        txtPass.setPreferredSize(txtUser.getPreferredSize());
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        card.add(txtPass, gbc);
 
-                JOptionPane.showMessageDialog(this,"Invalid Username or Password");
+        String storageHint = "file".equalsIgnoreCase(
+                DatabaseConfig.getProperty("storage.type", "file"))
+                ? "Storage: File (data/faculty.txt)"
+                : "Storage: MySQL";
+        JLabel lblHint = new JLabel(storageHint);
+        lblHint.setFont(UITheme.FONT_SMALL);
+        lblHint.setForeground(UITheme.TEXT_SECONDARY);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.insets = new java.awt.Insets(16, 8, 8, 8);
+        card.add(lblHint, gbc);
 
-            }
+        JButton btnLogin = UITheme.createPrimaryButton("Login");
+        btnLogin.addActionListener(e -> handleLogin());
 
-        }
+        JButton btnExit = UITheme.createSecondaryButton("Exit");
+        btnExit.addActionListener(e -> System.exit(0));
 
-        if(e.getSource()==btnExit){
+        gbc.gridy = 3;
+        gbc.insets = new java.awt.Insets(12, 8, 0, 8);
+        card.add(UITheme.createButtonBar(btnLogin, btnExit), gbc);
 
-            System.exit(0);
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(UITheme.BACKGROUND);
+        wrapper.setBorder(new EmptyBorder(24, 40, 40, 40));
+        wrapper.add(card, BorderLayout.CENTER);
 
-        }
+        add(wrapper, BorderLayout.CENTER);
 
+        getRootPane().setDefaultButton(btnLogin);
     }
 
+    private void handleLogin() {
+        String username = txtUser.getText().trim();
+        String password = new String(txtPass.getPassword());
+
+        if (username.equals(AppConfig.DEFAULT_ADMIN_USER)
+                && password.equals(AppConfig.DEFAULT_ADMIN_PASS)) {
+            dispose();
+            new Dashboard();
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Invalid username or password.",
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }

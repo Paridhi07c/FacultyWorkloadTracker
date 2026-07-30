@@ -1,5 +1,7 @@
 package model;
 
+import config.AppConfig;
+
 public class Faculty {
 
     private int facultyId;
@@ -8,15 +10,12 @@ public class Faculty {
     private String subject;
     private int hoursPerWeek;
 
-    // Default Constructor
     public Faculty() {
     }
 
-    // Parameterized Constructor
     public Faculty(int facultyId, String facultyName,
                    String department, String subject,
                    int hoursPerWeek) {
-
         this.facultyId = facultyId;
         this.facultyName = facultyName;
         this.department = department;
@@ -24,7 +23,6 @@ public class Faculty {
         this.hoursPerWeek = hoursPerWeek;
     }
 
-    // Getters
     public int getFacultyId() {
         return facultyId;
     }
@@ -45,7 +43,6 @@ public class Faculty {
         return hoursPerWeek;
     }
 
-    // Setters
     public void setFacultyId(int facultyId) {
         this.facultyId = facultyId;
     }
@@ -66,12 +63,23 @@ public class Faculty {
         this.hoursPerWeek = hoursPerWeek;
     }
 
+    public String getWorkloadStatus() {
+        if (hoursPerWeek > AppConfig.MAX_HOURS_PER_WEEK) {
+            return "Overloaded";
+        }
+        if (hoursPerWeek == AppConfig.MAX_HOURS_PER_WEEK) {
+            return "Full Load";
+        }
+        return "Underloaded";
+    }
+
     @Override
     public String toString() {
-        return "Faculty ID : " + facultyId +
-                "\nFaculty Name : " + facultyName +
-                "\nDepartment : " + department +
-                "\nSubject : " + subject +
-                "\nHours/Week : " + hoursPerWeek;
+        return "Faculty ID     : " + facultyId +
+                "\nFaculty Name   : " + facultyName +
+                "\nDepartment     : " + department +
+                "\nSubject        : " + subject +
+                "\nHours/Week     : " + hoursPerWeek +
+                "\nWorkload Status: " + getWorkloadStatus();
     }
 }
